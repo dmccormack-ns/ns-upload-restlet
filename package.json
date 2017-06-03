@@ -1,0 +1,33 @@
+{
+  "name": "ns-upload-restlet",
+  "version": "1.0.0",
+  "description": "RESTLet to upload files into NetSuite File Cabinet, Deployed using SDF, to be used in CI/CD pipelines",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmccormack-ns/ns-upload-restlet.git"
+  },
+  "keywords": [
+    "restlet",
+    "ns",
+    "file",
+    "cabinet",
+    "netsuite",
+    "suitescript",
+    "2.0",
+    "sdf"
+  ],
+  "author": "dmccormack-ns",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dmccormack-ns/ns-upload-restlet/issues"
+  },
+  "homepage": "https://github.com/dmccormack-ns/ns-upload-restlet#readme",
+  "devDependencies": {
+    "@hitc/netsuite-types": "^2017.1.14",
+    "typescript": "^2.3.4"
+  }
+}
