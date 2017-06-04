@@ -4,12 +4,14 @@
  * @NScriptType RESTLet
  */
 
-import * as error from "N/error";
-import * as log from "N/log";
 import * as encode from "N/encode";
+import * as error from "N/error";
+import * as file from "N/file";
+import * as log from "N/log";
+import * as search from "N/search";
 import { EntryPoints } from "N/Types";
 import { ErrorCodes } from "./nsu_error_codes";
-import {FILETYPES} from "./nsu_file_types";
+import { FILETYPES } from "./nsu_file_types";
 
 interface IPOSTRequest {
     action: string;
@@ -19,12 +21,22 @@ interface IPOSTRequest {
 }
 
 interface IFileInfo {
-    nsfileext: string;
+    nsfileext: file.Type;
+    fname: string;
+    dir: string;
+    content: string;
 }
 
 interface IPOSTResponse {
-    message: string;
+    message: string | IPOSTRequest;
     code: number;
+}
+
+interface INSError {
+    name: string;
+    message: string;
+    id: string;
+    stack: [string];
 }
 
 export function post(request: IPOSTRequest) {
@@ -40,32 +52,122 @@ function upload(request: IPOSTRequest) {
         code: 0,
         message: request,
     };
+    const fi = getFile(cleanPath(request.filepath), cleanPath(request.rootpath), request.content, true);
     log.debug("Request was: ", resp);
     return resp;
-//    validateRequest(request);
-//    const i = pathInfo(request.filepath, request.rootpath, true);
-//    const body = request.content;
-//    if (~FILETYPES.NON_BIN.indexOf(i.nsfileext)) {
+    //    validateRequest(request);
+    //    const i = pathInfo(request.filepath, request.rootpath, true);
+    //    const body = request.content;
+    //    if (~FILETYPES.NON_BIN.indexOf(i.nsfileext)) {
 
-//    }
+    //    }
 }
 
-function pathInfo(fullpath: string, baseIn: string, createFolders: boolean) {
+// file.create({
+//     name: "test.txt",
+//     fileType: file.Type.PLAINTEXT,
+//     contents: "asdf",
+//     folder: 123,
+// })
+
+function getFile(fullpath: string, baseIn: string, content: string, createFolders: boolean) {
     const i: IFileInfo = {
-        nsfileext: "zip",
+        fname: getFName(fullpath),
+        nsfileext: getExtension(fullpath),
+        dir: getPath(fullpath, baseIn),
+        content: getContent(content, getExtension(fullpath)),
     };
-    return i;
+}
+
+function getExtension(fullpath: string) {
+    const fpa = fullpath.split("/");
+    const fin = fpa.pop() || ".";
+    const ext = fin.split(".").pop() || "";
+    if (ext in FILETYPES.EXT) {
+        return FILETYPES.EXT[ext];
+    }
+}
+
+function getPath(fullpath: string, baseIn: string) {
+    fullpath = `${baseIn}/${fullpath}`;
+    const pathArray = fullpath.split("/");
+    pathArray.pop();
+    return pathArray.join("/");
+}
+
+function getFName(fullpath: string) {
+    const pathArray = fullpath.split("/");
+    return pathArray.pop();
+}
+
+function getContent(content: string, ext: file.Type) {
+    if (FILETYPES.NON_BIN.indexOf(ext) < 0) {
+        return encode.convert({ // 0 governance
+            string: content,
+            inputEncoding: encode.Encoding.BASE_64,
+            outputEncoding: encode.Encoding.UTF_8,
+        });
+    } else {
+        return content;
+    }
+}
+
+// recursively creates folders if not existing
+function createFolderR(path: string) {
+    return true;
+}
+
+function lookupFolder(path: string) {
+    return true;
+}
+
+function fileExists(f: IFileInfo) {
+    try {
+        const tmpFile = file.load({ // 10 governance
+            id: `${f.dir}/${f.fname}`,
+        });
+        return tmpFile;
+    } catch (e) {
+        if (e.name === "RCRD_DSNT_EXIST") {
+            return false;
+        } else {
+            throw e;
+        }
+    }
+}
+
+function overWriteFile(newFile: IFileInfo, oldFile: file.File) {
+    if (newFile.content === oldFile.getContents()) { // 0 governance
+        return true;
+    } else {
+        const folderId: number = oldFile.folder;
+        file.delete({ // 20 governance
+            id: oldFile.id,
+        });
+        const createdFile = file.create({ // 0 governance
+            name: newFile.fname,
+            fileType: newFile.nsfileext,
+            folder: oldFile.folder,
+            contents: newFile.content,
+        });
+        createdFile.save(); // 20 governance
+        return true;
+    }
+}
+
+function cleanPath(path: string) {
+    return path.replace(/[\\]/g, "/");
 }
 
 function validateRequest(request: IPOSTRequest) {
-     if (!request.filepath) {
-        throw error.create({
+    if (!request.filepath) {
+        throw error.create({ // 0 governance
             name: ErrorCodes.INVLD_PARAM,
             message: "No file path specified",
         });
     }
-     if (!request.rootpath) {
-        throw error.create({
+    if (!request.rootpath) {
+        throw error.create({ // 0 governance
             name: ErrorCodes.INVLD_PARAM,
             message: "No destination root path specified",
         });
