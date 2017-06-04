@@ -28,6 +28,12 @@
   "homepage": "https://github.com/dmccormack-ns/ns-upload-restlet#readme",
   "devDependencies": {
     "@hitc/netsuite-types": "^2017.1.14",
+    "gulp": "^3.9.1",
+    "gulp-typescript": "^3.1.7",
+    "tslint": "^5.4.2",
     "typescript": "^2.3.4"
+  },
+  "dependencies": {
+    "nscabinet": "^0.5.2"
   }
 }
