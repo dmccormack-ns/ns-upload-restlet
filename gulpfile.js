@@ -19,7 +19,7 @@ gulp.task('deploy', ['build'], () => {
     deploy.stdout.on('data', (data) => {
         let sdfcli = data.toString();
         if(sdfcli.startsWith("SuiteCloud")) {
-            deploy.stdin.write("4v7JSNInZm9nB3IS\n");
+            deploy.stdin.write("\n");
             console.log("MURP");
         }
         if (sdfcli.startsWith("WARNING! You are deploying to a Production accoun")) {
