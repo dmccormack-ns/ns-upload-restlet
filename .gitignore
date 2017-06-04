@@ -1,4 +1,6 @@
 node_modules/
 dist/FileCabinet/
 dist/Objects/
-.log
+*.log
+sdf*
+nsconfig.json
