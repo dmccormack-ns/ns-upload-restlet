@@ -7,9 +7,11 @@
 import * as encode from "N/encode";
 import * as error from "N/error";
 import * as file from "N/file";
+import * as format from "N/format";
 import * as log from "N/log";
 import * as search from "N/search";
 import { EntryPoints } from "N/Types";
+import {FileCabinet} from "./filecabinet/filecabinet";
 import { ErrorCodes } from "./nsu_error_codes";
 import { FILETYPES } from "./nsu_file_types";
 
@@ -41,20 +43,78 @@ interface INSError {
 
 export function post(request: IPOSTRequest) {
     // routing
+    log.debug("Received request", request);
     switch (request.action) {
         case "upload":
             return upload(request);
+        default:
+            return request;
     }
 }
-
+// TODO REFACTOR FILECABINET SPECIFICS INTO SEPARATE MODULE
 function upload(request: IPOSTRequest) {
     const resp: IPOSTResponse = {
         code: 0,
         message: request,
     };
-    const fi = getFile(cleanPath(request.filepath), cleanPath(request.rootpath), request.content, true);
-    log.debug("Request was: ", resp);
-    return resp;
+    const fullpath: string = `${cleanPath(request.rootpath)}/${cleanPath(request.filepath)}`;
+    const fi = getFile(fullpath, request.content, true);
+
+    const nsfi =  FileCabinet.File.fileExists(fi);
+    if (nsfi) {
+        FileCabinet.File.overWriteFile(fi, nsfi);
+        return "SUCCESS";
+    } else {
+        let nsFolder = FileCabinet.Folder.lookupFolder(fullpath);
+        if (nsFolder.id !== "-1") {
+            const nfi = file.create({
+                name: fi.fname,
+                folder: format.parse({
+                    value: nsFolder.id,
+                    type: format.Type.INTEGER,
+                }) as number,
+                contents: fi.content,
+                fileType: fi.nsfileext,
+            });
+            nfi.save();
+        } else {
+            nsFolder = FileCabinet.Folder.createFolderR(fullpath, nsFolder);
+            const nfi = file.create({
+                name: fi.fname,
+                folder: nsFolder.id as number,
+                contents: fi.content,
+                fileType: fi.nsfileext,
+            });
+            nfi.save();
+        }
+        log.debug("Folder Lookup", JSON.stringify(nsFolder));
+        // if (nsFolder) {
+        //     file.create({
+        //         name: fi.fname,
+        //         folder: nsFolder.id,
+        //         contents: fi.content,
+        //         fileType: fi.nsfileext,
+        //     });
+        //     return "SUCCESS";
+        // } else {
+        //     const newFolder = FileCabinet.Folder.createFolderR(fullpath);
+        //     file.create({
+        //         name: fi.fname,
+        //         folder: newFolder,
+        //         contents: fi.content,
+        //         fileType: fi.nsfileext,
+        //     });
+        // }
+    }
+    // if file exits, overwrite
+    // if file doesn't exist...
+        // if folder doesn't exist...
+            // create folder tree
+                // save folder
+        // else save file
+
+    log.debug("Built File object: ", JSON.stringify(fi));
+    return "TEST";
     //    validateRequest(request);
     //    const i = pathInfo(request.filepath, request.rootpath, true);
     //    const body = request.content;
@@ -70,89 +130,14 @@ function upload(request: IPOSTRequest) {
 //     folder: 123,
 // })
 
-function getFile(fullpath: string, baseIn: string, content: string, createFolders: boolean) {
+function getFile(fullpath: string, content: string, createFolders: boolean) {
     const i: IFileInfo = {
-        fname: getFName(fullpath),
-        nsfileext: getExtension(fullpath),
-        dir: getPath(fullpath, baseIn),
-        content: getContent(content, getExtension(fullpath)),
+        fname: FileCabinet.File.getFName(fullpath),
+        nsfileext: FileCabinet.File.getExtension(fullpath),
+        dir: FileCabinet.File.getPath(fullpath),
+        content: FileCabinet.File.getContent(content, FileCabinet.File.getExtension(fullpath)),
     };
-}
-
-function getExtension(fullpath: string) {
-    const fpa = fullpath.split("/");
-    const fin = fpa.pop() || ".";
-    const ext = fin.split(".").pop() || "";
-    if (ext in FILETYPES.EXT) {
-        return FILETYPES.EXT[ext];
-    }
-}
-
-function getPath(fullpath: string, baseIn: string) {
-    fullpath = `${baseIn}/${fullpath}`;
-    const pathArray = fullpath.split("/");
-    pathArray.pop();
-    return pathArray.join("/");
-}
-
-function getFName(fullpath: string) {
-    const pathArray = fullpath.split("/");
-    return pathArray.pop();
-}
-
-function getContent(content: string, ext: file.Type) {
-    if (FILETYPES.NON_BIN.indexOf(ext) < 0) {
-        return encode.convert({ // 0 governance
-            string: content,
-            inputEncoding: encode.Encoding.BASE_64,
-            outputEncoding: encode.Encoding.UTF_8,
-        });
-    } else {
-        return content;
-    }
-}
-
-// recursively creates folders if not existing
-function createFolderR(path: string) {
-    return true;
-}
-
-function lookupFolder(path: string) {
-    return true;
-}
-
-function fileExists(f: IFileInfo) {
-    try {
-        const tmpFile = file.load({ // 10 governance
-            id: `${f.dir}/${f.fname}`,
-        });
-        return tmpFile;
-    } catch (e) {
-        if (e.name === "RCRD_DSNT_EXIST") {
-            return false;
-        } else {
-            throw e;
-        }
-    }
-}
-
-function overWriteFile(newFile: IFileInfo, oldFile: file.File) {
-    if (newFile.content === oldFile.getContents()) { // 0 governance
-        return true;
-    } else {
-        const folderId: number = oldFile.folder;
-        file.delete({ // 20 governance
-            id: oldFile.id,
-        });
-        const createdFile = file.create({ // 0 governance
-            name: newFile.fname,
-            fileType: newFile.nsfileext,
-            folder: oldFile.folder,
-            contents: newFile.content,
-        });
-        createdFile.save(); // 20 governance
-        return true;
-    }
+    return i;
 }
 
 function cleanPath(path: string) {
