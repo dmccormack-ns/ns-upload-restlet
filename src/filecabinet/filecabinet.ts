@@ -19,18 +19,25 @@ export namespace FileCabinet {
 
         export function createFolderR(path: string, lookup: IFolderLookup) {
             const pa = path.split("/");
-            log.debug("Path to createFolders from...", path);
+            // log.debug("Path to createFolders from...", path);
+            log.debug("lookup map is", lookup.pathToIdMap);
             const fpa = pa.slice(1, pa.length - 1);
             let foldersToCreate = [] as string[];
             let existingPath: string = "";
             for (let i = fpa.length; i > 0; --i) {
                 const subpath = `/${fpa.slice(0, i + 1).join("/")}`;
+                log.debug("subpath is", subpath);
                 if (subpath in lookup.pathToIdMap) {
                     foldersToCreate = arrayDiff(fpa, fpa.slice(0, i + 1));
                     existingPath = subpath;
                     break;
                 }
             }
+            // case if no folders created yet, create every folder
+            if (foldersToCreate.length === 0) {
+                foldersToCreate = fpa;
+            }
+            log.debug("Goign to create", foldersToCreate);
             for (const dir of foldersToCreate) {
                 log.debug("Going to create", dir);
                 log.debug("Existing Path is: ", existingPath);
@@ -42,7 +49,7 @@ export namespace FileCabinet {
                     fieldId: "name",
                     value: dir,
                 });
-                if (existingPath) {
+                if (lookup.pathToIdMap[existingPath]) {
                     newFolder.setValue({
                         fieldId: "parent",
                         value: lookup.pathToIdMap[existingPath],
