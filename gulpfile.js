@@ -3,6 +3,7 @@ const tsc = require('gulp-typescript');
 const tsProject = tsc.createProject('tsconfig.json');
 const sh = require('child_process').spawn;
 const nscabinet = require('nscabinet');
+const watch = require('gulp-watch');
 
 gulp.task('build', () => {
     return tsProject.src()
@@ -41,13 +42,27 @@ gulp.task('deploy', ['build'], () => {
     deploy.on('close', (code) => {
         console.log("exited with code " + code);
     });
+    return deploy;
 });
 gulp.task("upload-manifest", ["upload-files"], () => {
-     return gulp.src(['src/tests/SSP Applications/sca/manifest.txt'])
-        .pipe(nscabinet({ rootPath: '/Web Site Hosting Files' }));
+    return gulp.src(['src/tests/SSP Applications/sca/manifest.txt'])
+        .pipe(nscabinet());
 });
 gulp.task("upload-files", [], () => {
     return gulp.src(['src/tests/SSP Applications/sca/**/*', '!src/tests/SSP Applications/sca/manifest.txt'])
-        .pipe(nscabinet({ rootPath: '/Web Site Hosting Files' }));
-})
+        .pipe(nscabinet());
+});
+
+function uploadFile(file) {
+    return gulp.src(file)
+        .pipe(nscabinet());
+}
+
+gulp.task("watch", () => {
+   gulp.watch('src/tests/SSP Applications/sca/**/*', (event) => {
+        if (event.type === 'changed') {
+            uploadFile(event.path);
+        }
+   });      
+});
 
