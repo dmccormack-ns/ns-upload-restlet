@@ -1,0 +1,26 @@
+<restlet scriptid="customscript_examine_file_restlet">
+  <deletefunction></deletefunction>
+  <description></description>
+  <getfunction></getfunction>
+  <isinactive>F</isinactive>
+  <name>NS Uploader - Examine Script</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <postfunction>post</postfunction>
+  <putfunction></putfunction>
+  <scriptfile>[/SuiteScripts/examine_file_restlet.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_efr_d1">
+      <allemployees>F</allemployees>
+      <allpartners>F</allpartners>
+      <allroles>F</allroles>
+      <audslctrole></audslctrole>
+      <isdeployed>T</isdeployed>
+      <loglevel>DEBUG</loglevel>
+      <status>TESTING</status>
+      <title>NS Uploader - Examine Script D1</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</restlet>

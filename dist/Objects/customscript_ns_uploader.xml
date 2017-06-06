@@ -1,0 +1,26 @@
+<restlet scriptid="customscript_ns_uploader">
+  <deletefunction></deletefunction>
+  <description></description>
+  <getfunction></getfunction>
+  <isinactive>F</isinactive>
+  <name>NS Uploader</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <postfunction>post</postfunction>
+  <putfunction></putfunction>
+  <scriptfile>[/SuiteScripts/ns_uploader.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_ns_uploader_d1">
+      <allemployees>F</allemployees>
+      <allpartners>F</allpartners>
+      <allroles>F</allroles>
+      <audslctrole></audslctrole>
+      <isdeployed>T</isdeployed>
+      <loglevel>DEBUG</loglevel>
+      <status>TESTING</status>
+      <title>NS Uploader D1</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</restlet>
