@@ -11,7 +11,7 @@ import * as format from "N/format";
 import * as log from "N/log";
 import * as search from "N/search";
 import { EntryPoints } from "N/Types";
-import {FileCabinet} from "./filecabinet/filecabinet";
+import { FileCabinet } from "./filecabinet/filecabinet";
 import { ErrorCodes } from "./nsu_error_codes";
 import { FILETYPES } from "./nsu_file_types";
 
@@ -60,9 +60,10 @@ function upload(request: IPOSTRequest) {
     const fullpath: string = `${cleanPath(request.rootpath)}/${cleanPath(request.filepath)}`;
     const fi = getFile(fullpath, request.content, true);
 
-    const nsfi =  FileCabinet.File.fileExists(fi);
+    const nsfi = FileCabinet.File.fileExists(fi);
     if (nsfi) {
         FileCabinet.File.overWriteFile(fi, nsfi);
+        log.debug("Overwrote File", nsfi);
         return "SUCCESS";
     } else {
         let nsFolder = FileCabinet.Folder.lookupFolder(fullpath);
@@ -76,7 +77,9 @@ function upload(request: IPOSTRequest) {
                 contents: fi.content,
                 fileType: fi.nsfileext,
             });
-            nfi.save();
+            const id = nfi.save();
+            log.debug("Created file: ", nfi);
+            return "SUCCESS";
         } else {
             nsFolder = FileCabinet.Folder.createFolderR(fullpath, nsFolder);
             const nfi = file.create({
@@ -86,43 +89,11 @@ function upload(request: IPOSTRequest) {
                 fileType: fi.nsfileext,
             });
             nfi.save();
+            log.debug("Created file: ", nfi);
+            return "SUCCESS";
         }
-        log.debug("Folder Lookup", JSON.stringify(nsFolder));
-        // if (nsFolder) {
-        //     file.create({
-        //         name: fi.fname,
-        //         folder: nsFolder.id,
-        //         contents: fi.content,
-        //         fileType: fi.nsfileext,
-        //     });
-        //     return "SUCCESS";
-        // } else {
-        //     const newFolder = FileCabinet.Folder.createFolderR(fullpath);
-        //     file.create({
-        //         name: fi.fname,
-        //         folder: newFolder,
-        //         contents: fi.content,
-        //         fileType: fi.nsfileext,
-        //     });
-        // }
     }
-    // if file exits, overwrite
-    // if file doesn't exist...
-        // if folder doesn't exist...
-            // create folder tree
-                // save folder
-        // else save file
-
-    log.debug("Built File object: ", JSON.stringify(fi));
-    return "TEST";
-    //    validateRequest(request);
-    //    const i = pathInfo(request.filepath, request.rootpath, true);
-    //    const body = request.content;
-    //    if (~FILETYPES.NON_BIN.indexOf(i.nsfileext)) {
-
-    //    }
 }
-
 // file.create({
 //     name: "test.txt",
 //     fileType: file.Type.PLAINTEXT,

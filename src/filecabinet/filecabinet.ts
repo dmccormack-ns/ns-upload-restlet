@@ -19,7 +19,7 @@ export namespace FileCabinet {
 
         export function createFolderR(path: string, lookup: IFolderLookup) {
             const pa = path.split("/");
-
+            log.debug("Path to createFolders from...", path);
             const fpa = pa.slice(1, pa.length - 1);
             let foldersToCreate = [] as string[];
             let existingPath: string = "";
@@ -33,6 +33,7 @@ export namespace FileCabinet {
             }
             for (const dir of foldersToCreate) {
                 log.debug("Going to create", dir);
+                log.debug("Existing Path is: ", existingPath);
                 const newFolder = record.create({ // 5 governance
                     type: record.Type.FOLDER,
                     isDynamic: true,
@@ -75,7 +76,7 @@ export namespace FileCabinet {
             const results = s.runPaged();
 
             if (results.count === 0) {
-                log.debug("Didn't find folder: ", `${folderName} with Parent: ${parentId}`);
+                // log.debug("Didn't find folder: ", `${folderName} with Parent: ${parentId}`);
                 return "-1";
             } else if (results.count > 1) {
                 throw error.create({
@@ -91,9 +92,9 @@ export namespace FileCabinet {
         }
 
         export function lookupFolder(path: string) {
-            log.debug("Looking up path", path);
+            // log.debug("Looking up path", path);
             const pa = path.substring(1).split("/");
-            log.debug("path to array: ", pa.slice(0, pa.length - 1));
+            // log.debug("path to array: ", pa.slice(0, pa.length - 1));
             let prevFolder = "@NONE@";
             const lookup: IFolderLookup = {
                 id: "-1",
@@ -113,7 +114,7 @@ export namespace FileCabinet {
                 lookup.id = folderId;
                 prevFolder = folderId;
             });
-            log.debug("lookup is", lookup.pathToIdMap);
+            // log.debug("lookup is", lookup.pathToIdMap);
             return lookup;
         }
 
@@ -134,7 +135,7 @@ export namespace FileCabinet {
             if (ext in FILETYPES.EXT) {
                 return FILETYPES.EXT[ext];
             } else {
-                return ext;
+                return file.Type.PLAINTEXT;
             }
         }
 
@@ -157,7 +158,7 @@ export namespace FileCabinet {
                     outputEncoding: encode.Encoding.UTF_8,
                 }) || "";
             } else {
-                return content || "";
+                return content || " ";
             }
         }
 

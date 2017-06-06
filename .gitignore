@@ -4,3 +4,5 @@ dist/Objects/
 *.log
 sdf*
 nsconfig.json
+src/tests/example_dir/
+src/tests/
